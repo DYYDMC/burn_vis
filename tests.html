@@ -29,6 +29,10 @@ test('parses German decimals and thousands separators', () => {
   eq(parseHealthPayload('2026-10-01:412,6;2026-10-02:1.234;2026-10-03:1,234'), { '2026-10-01': 413, '2026-10-02': 1234, '2026-10-03': 1234 });
 });
 
+test('parses unrounded values with units and mixed separators', () => {
+  eq(parseHealthPayload('2026-10-01:412.6 kcal;2026-10-02:1.234,5 kcal;2026-10-03:1,234.5'), { '2026-10-01': 413, '2026-10-02': 1235, '2026-10-03': 1235 });
+});
+
 test('skips malformed pairs and sums repeated dates', () => {
   eq(parseHealthPayload('junk;2026-10-01:100;10/02/2026:5;2026-10-01:50;2026-10-03:-4;2026-10-04:abc;'), { '2026-10-01': 150 });
 });

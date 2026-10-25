@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Apple Health Sync Setup</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .guide { max-width: 640px; margin: 0 auto; padding: max(20px, env(safe-area-inset-top)) 16px 48px; }
+  .guide h1 { font-size: 24px; margin: 8px 0 4px; }
+  .guide h2 { font-size: 18px; margin: 28px 0 8px; }
+  .guide p, .guide li { color: var(--text-secondary); }
+  .guide b, .guide strong { color: var(--text-primary); }
+  .guide ol { padding-left: 22px; }
+  .guide li { margin: 8px 0; }
+  .guide li li { margin: 4px 0; }
+  .guide code, .guide kbd { font: 13px ui-monospace, Menlo, monospace; background: var(--surface-1); border: 1px solid var(--border);
+                            border-radius: 6px; padding: 1px 6px; color: var(--text-primary); white-space: nowrap; }
+  .guide .note { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin: 12px 0; }
+  .guide .copy { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
+  .guide .copy code { flex: 1; padding: 8px 10px; white-space: normal; word-break: break-all; }
+  .guide .preview { font: 13px/1.6 ui-monospace, Menlo, monospace; background: var(--surface-1); border: 1px solid var(--border);
+                    border-radius: 12px; padding: 12px 14px; white-space: pre; overflow-x: auto; color: var(--text-primary); }
+</style>
+</head>
+<body>
+<main class="guide">
+  <a href="./">← Back to Burn Goal</a>
+  <h1>Sync Apple Health with a Shortcut</h1>
+  <p>A website isn't allowed to read Apple Health. <b>Shortcuts</b> is an Apple app that comes with every iPhone
+    (icon: two overlapping coloured squares). It runs small recipes of steps called <b>actions</b>.
+    You'll build one recipe that reads your daily <b>Active Energy</b> from Health and opens this app with those numbers.
+    It takes about 10 minutes, once.</p>
+
+  <div class="note">Your Health numbers travel in the part of the link after <code>#</code>. Browsers never send that part
+    to a server, so the data stays on your phone.</div>
+
+  <h2>What you're building</h2>
+  <p>When finished, the shortcut looks like this (top to bottom):</p>
+  <div class="preview">Find Health Samples
+  Active Energy · last 90 days · by day
+Repeat with Each  (Health Samples)
+  Get Details → Start Date
+  Format Date → yyyy-MM-dd
+  Get Details → Value (of Repeat Item)
+  Text → Formatted Date:Value
+End Repeat
+Combine Text  (separator ;)
+URL  (link below + Combined Text)
+Open URLs</div>
+
+  <h2>How adding actions works</h2>
+  <ul>
+    <li>At the bottom of the editor there's a <b>Search Actions</b> bar. Type an action's name and tap it to add it.</li>
+    <li>New actions are added at the <b>bottom</b>. To move one, press and hold it, then drag.</li>
+    <li>Blue words inside an action are settings: tap them to change them.</li>
+    <li>Coloured bubbles (for example <i>Health Samples</i>) are <b>variables</b>: the result of an earlier action.
+      Each action automatically uses the result of the action right above it.</li>
+  </ul>
+  <p class="muted">If your iPhone is set to German, the action names are in German. Search for the German name, or set
+    the phone language to English while you build this; it keeps working afterwards.</p>
+
+  <h2>Step by step</h2>
+  <ol>
+    <li>Open <b>Shortcuts</b>, make sure you're on the <b>Shortcuts</b> tab, tap <b>+</b> (top right).</li>
+    <li>Tap the name at the top (“New Shortcut”) → <b>Rename</b> → type <code>Sync Burn</code>.</li>
+
+    <li>Search <b>Find Health Samples</b> and tap it. Then in that action:
+      <ol type="a">
+        <li>Tap the blue type (it may say <i>Steps</i>) → choose <b>Active Energy</b>.</li>
+        <li>Tap <b>Add Filter</b>. Set it to <b>Start Date</b> · <b>is in the last</b> · <b>90</b> · <b>days</b>.</li>
+        <li>Tap the small arrow / <b>Show More</b> on the action. Set <b>Group By</b> to <b>Day</b>, <b>Sort by</b> to <b>Start Date</b>
+          (oldest first), and leave <b>Limit</b> off.</li>
+      </ol>
+    </li>
+
+    <li>Search <b>Repeat with Each</b> and tap it. It should read “Repeat with each item in <i>Health Samples</i>”,
+      followed by an <b>End Repeat</b> line.</li>
+
+    <li>Next come 4 actions that go <b>between</b> “Repeat with each” and “End Repeat”. If one lands below End Repeat, drag it up.
+      <ol type="a">
+        <li><b>Get Details of Health Sample</b> → tap the blue detail → <b>Start Date</b>.
+          Its input should be <i>Repeat Item</i>.</li>
+        <li><b>Format Date</b> → tap the date style → <b>Custom</b> → in the <b>Format String</b> field type exactly
+          <code>yyyy-MM-dd</code> (small y, capital M, small d).</li>
+        <li><b>Get Details of Health Sample</b> again → detail <b>Value</b>. This one will wrongly point at <i>Formatted Date</i>:
+          tap that bubble → <b>Select Variable</b> (or <b>Repeat Item</b> in the list) → pick <b>Repeat Item</b>.</li>
+        <li><b>Text</b> → tap inside the text box, clear it, then use the variable bar above the keyboard:
+          insert <b>Formatted Date</b>, type a colon <code>:</code>, insert <b>Health Sample Value</b>.
+          It should look like <i>Formatted Date</i>:<i>Value</i> with no spaces.</li>
+      </ol>
+    </li>
+
+    <li>Below <b>End Repeat</b>: search <b>Combine Text</b>. Its input should be <i>Repeat Results</i>.
+      Tap <b>New Lines</b> → <b>Custom</b> → type <code>;</code> (a semicolon).</li>
+
+    <li>Search <b>URL</b> and tap the action called just “URL”. In its box paste this link:
+      <div class="copy"><code id="link"></code><button type="button" id="copy">Copy</button></div>
+      then, right after the <code>=</code>, insert the variable <b>Combined Text</b>.</li>
+
+    <li>Search <b>Open URLs</b> and tap it. Its input should be <i>URL</i>.</li>
+
+    <li>Tap <b>Done</b>, then tap the shortcut to run it. The first time, iPhone asks:
+      <ul>
+        <li>to let the shortcut read Health data → turn on <b>Active Energy</b> and allow;</li>
+        <li>to let it open a link → <b>Always Allow</b>.</li>
+      </ul>
+      Safari opens Burn Goal and a message at the top says “Synced … days from Apple Health”. 🎉</li>
+  </ol>
+
+  <h2>Make it run by itself (optional)</h2>
+  <ol>
+    <li>In Shortcuts, go to the <b>Automation</b> tab → <b>+</b> (or <b>New Automation</b>).</li>
+    <li>Choose <b>Time of Day</b>, set e.g. <b>21:30</b>, <b>Daily</b>, select <b>Run Immediately</b>, tap <b>Next</b>.</li>
+    <li>Choose <b>Sync Burn</b>.</li>
+  </ol>
+  <p>You can also run it any time from the Shortcuts app, a Home Screen widget, or by asking Siri “Sync Burn”.
+    Running it again just refreshes the same days, so nothing is counted twice.</p>
+
+  <h2>If something goes wrong</h2>
+  <ul>
+    <li><b>“Apple Health link had no readable days”</b>: check that the Format String is exactly <code>yyyy-MM-dd</code>
+      and that the Text has a colon between the two variables.</li>
+    <li><b>Numbers look about 4× too big</b>: Health is counting in kJ. In the Health app go to Browse → Activity →
+      Active Energy → scroll down → Unit → kcal (on some phones: Cal).</li>
+    <li><b>Nothing shows up for old days</b>: the app only counts days between your goal's start date and goal date
+      (tap <b>Goal</b> in the app to check them).</li>
+    <li><b>Synced in Safari but not in the Home Screen icon</b>: use the app in Safari. A Home Screen icon keeps its own separate data.</li>
+  </ul>
+</main>
+<script>
+  const link = new URL('./#health=', location.href).href;
+  document.getElementById('link').textContent = link;
+  document.getElementById('copy').onclick = async ev => {
+    try { await navigator.clipboard.writeText(link); ev.target.textContent = 'Copied'; }
+    catch { ev.target.textContent = 'Select & copy the link'; }
+  };
+</script>
+</body>
+</html>

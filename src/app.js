@@ -73,9 +73,9 @@ function render() {
   $('days-left').textContent = D.daysLeft;
   $('per-day').textContent = fmt(D.neededPerDay);
   $('today-kcal').textContent = fmt(D.todayBurned);
-  $('sync-info').textContent = state.healthSyncedAt
-    ? `Apple Health last synced ${new Date(state.healthSyncedAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
-    : 'Apple Health not synced yet: run the “Sync Burn” Shortcut';
+  $('sync-info').innerHTML = state.healthSyncedAt
+    ? `Apple Health last synced ${new Date(state.healthSyncedAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · <a href="sync-setup.html">Sync setup</a>`
+    : 'Apple Health not synced yet · <a href="sync-setup.html">Set up sync</a>';
   renderChart($('chart'), state, D, today);
   renderHistory(D, today);
 }

@@ -40,11 +40,17 @@ export function derive(state, today) {
   return { byDay, burned, left, totalDays, daysDone, daysLeft, pace, neededPerDay, delta, avg, projected, todayBurned: byDay[today] || 0 };
 }
 
-// "1.234" / "1,234" with exactly-3-digit groups is a thousands separator (German or English locale);
-// otherwise a comma is a decimal separator.
+// Accepts German and English number formats, with or without a unit ("412,6 kcal", "1.234,5", "1,234.5").
+// With both separators the last one is the decimal point; with one kind, exactly-3-digit groups are thousands.
 function parseKcal(raw) {
-  const s = raw.trim().replace(/\s/g, '');
-  if (/^\d{1,3}([.,]\d{3})+$/.test(s)) return Number(s.replace(/[.,]/g, ''));
+  const s = raw.replace(/[^\d.,-]/g, '');
+  if (!/\d/.test(s)) return NaN;
+  const lastDot = s.lastIndexOf('.'), lastComma = s.lastIndexOf(',');
+  if (lastDot >= 0 && lastComma >= 0) {
+    const dec = lastDot > lastComma ? '.' : ',';
+    return Number(s.replace(dec === '.' ? /,/g : /\./g, '').replace(',', '.'));
+  }
+  if (/^-?\d{1,3}([.,]\d{3})+$/.test(s)) return Number(s.replace(/[.,]/g, ''));
   return Number(s.replace(',', '.'));
 }
 
