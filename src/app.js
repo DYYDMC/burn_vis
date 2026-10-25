@@ -13,6 +13,8 @@ const QUICK = [
   { label: '🏊 Swim 30 min', activity: 'Swim', kcal: 260 },
 ];
 
+const SANE_MANUAL_KCAL = 2000;
+
 const $ = id => document.getElementById(id);
 const fmt = n => Math.round(n).toLocaleString('en-US');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -56,7 +58,7 @@ function renderHistory(D, today) {
     const health = state.health[d];
     days.push(`<li><div class="day"><b>${fmtDate(d)}</b><span class="num">${fmt(D.byDay[d])} kcal</span></div>
       ${health != null ? `<div class="row muted"><span>Apple Health · Active Energy</span><span class="num">${fmt(health)}</span></div>` : ''}
-      ${manual.map(e => `<div class="row"><span>${esc(e.activity)}</span>
+      ${manual.map(e => `<div class="row"><span>${esc(e.activity)} <span class="muted">· added by hand</span></span>
         <span class="num">${fmt(e.kcal)} <button class="link" data-del="${e.id}" aria-label="Delete ${esc(e.activity)} entry">✕</button></span></div>`).join('')}</li>`);
   }
   $('history').innerHTML = days.join('') || '<li class="muted">Nothing logged yet</li>';
@@ -100,7 +102,10 @@ $('chips').onclick = ev => { const b = ev.target.closest('[data-quick]'); if (b)
 $('custom-form').onsubmit = ev => {
   ev.preventDefault();
   const kcal = Number(ev.target.kcal.value);
-  if (kcal > 0) { addEntry('Other', kcal); ev.target.reset(); }
+  if (!(kcal > 0)) return;
+  // A goal-sized number typed here would melt the block in one go
+  if (kcal > SANE_MANUAL_KCAL && !confirm(`Add ${fmt(kcal)} kcal burned today by hand? That's more than a marathon.`)) return;
+  addEntry('Other', kcal); ev.target.reset();
 };
 $('history').onclick = ev => {
   const b = ev.target.closest('[data-del]');
