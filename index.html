@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Burn Goal</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="app">
+  <div class="top">
+    <span id="range" class="muted"></span>
+    <button class="link" id="open-settings">Goal</button>
+  </div>
+
+  <section class="count">
+    <div class="big num" id="left-num"></div>
+    <div class="sub" id="left-sub"></div>
+    <div id="status" class="status"></div>
+  </section>
+
+  <div id="fat" class="fat"></div>
+
+  <div class="facts">
+    <div><b class="num" id="days-left"></b>days left</div>
+    <div><b class="num" id="per-day"></b>kcal / day</div>
+    <div><b class="num" id="today-kcal"></b>burned today</div>
+  </div>
+
+  <div class="chips" id="chips"></div>
+  <form class="custom" id="custom-form">
+    <input type="number" name="kcal" placeholder="other kcal" min="1" inputmode="numeric" required aria-label="Other kcal">
+    <button class="primary">Melt it</button>
+  </form>
+  <p class="sync muted" id="sync-info"></p>
+
+  <section class="card">
+    <h2>Progress</h2>
+    <div class="chart-wrap" id="chart"></div>
+    <div class="legend">
+      <span><i class="key burned"></i>Burned (cumulative)</span>
+      <span><i class="key pace"></i>Planned pace</span>
+      <span><i class="key projection"></i>Projection at your average</span>
+      <span><i class="key goal"></i>Goal date &amp; kcal</span>
+    </div>
+  </section>
+
+  <details class="card history">
+    <summary>History</summary>
+    <ul id="history"></ul>
+  </details>
+</main>
+
+<dialog id="settings">
+  <form method="dialog" id="settings-form">
+    <strong>Goal</strong>
+    <label>Start date <input type="date" name="startDate" required></label>
+    <label>Goal date <input type="date" name="goalDate" required></label>
+    <label>Goal kcal to burn <input type="number" name="goalKcal" min="1" step="1" required></label>
+    <div class="actions">
+      <button value="cancel" formnovalidate>Cancel</button>
+      <button class="primary" value="save">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script type="module" src="src/app.js"></script>
+</body>
+</html>

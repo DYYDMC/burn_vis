@@ -1,0 +1,76 @@
+<!doctype html>
+<!-- Model tests. Serve the folder (python3 -m http.server) and open /tests.html. -->
+<html lang="en">
+<head><meta charset="utf-8"><title>Burn Goal Tests</title>
+<style>body { font: 14px/1.5 ui-monospace, Menlo, monospace; padding: 16px; } .pass { color: #008300; } .fail { color: #c62828; }</style>
+</head>
+<body>
+<h1 id="summary">Running…</h1>
+<ul id="out"></ul>
+<script type="module">
+import { derive, parseHealthPayload, mergeHealth, defaultState, addDays, diffDays } from './src/model.js';
+
+const results = [];
+const test = (name, fn) => { try { fn(); results.push([name, null]); } catch (e) { results.push([name, e.message]); } };
+const eq = (a, b) => { if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error(`expected ${JSON.stringify(b)}, got ${JSON.stringify(a)}`); };
+
+const base = { ...defaultState('2026-10-01'), goalDate: '2026-11-30', goalKcal: 9240 };
+
+test('date helpers cross month and DST boundaries', () => {
+  eq(addDays('2026-10-31', 1), '2026-11-01');
+  eq(diffDays('2026-10-24', '2026-10-26'), 2);   // EU DST ends 25 Oct 2026
+});
+
+test('parses the Shortcut payload', () => {
+  eq(parseHealthPayload('2026-10-01:412;2026-10-02:388'), { '2026-10-01': 412, '2026-10-02': 388 });
+});
+
+test('parses German decimals and thousands separators', () => {
+  eq(parseHealthPayload('2026-10-01:412,6;2026-10-02:1.234;2026-10-03:1,234'), { '2026-10-01': 413, '2026-10-02': 1234, '2026-10-03': 1234 });
+});
+
+test('skips malformed pairs and sums repeated dates', () => {
+  eq(parseHealthPayload('junk;2026-10-01:100;10/02/2026:5;2026-10-01:50;2026-10-03:-4;2026-10-04:abc;'), { '2026-10-01': 150 });
+});
+
+test('Health days replace earlier Health values but keep other days', () => {
+  const s = mergeHealth({ ...base, health: { '2026-10-01': 100, '2026-10-02': 200 } }, { '2026-10-02': 250 }, 't');
+  eq(s.health, { '2026-10-01': 100, '2026-10-02': 250 });
+});
+
+test('derive adds Health and manual kcal, ignores days outside the window', () => {
+  const s = { ...base, health: { '2026-09-30': 999, '2026-10-01': 300 }, entries: [{ id: 'a', date: '2026-10-01', activity: 'Run', kcal: 200 }, { id: 'b', date: '2026-12-01', activity: 'Run', kcal: 999 }] };
+  const D = derive(s, '2026-10-02');
+  eq(D.burned, 500);
+  eq(D.left, 8740);
+  eq(D.byDay, { '2026-10-01': 500 });
+});
+
+test('derive pace, days left and ahead/behind', () => {
+  const D = derive({ ...base, health: { '2026-10-01': 100 } }, '2026-10-02');
+  eq(D.totalDays, 61);
+  eq(D.daysLeft, 60);
+  eq(Math.round(D.pace), 151);
+  eq(Math.round(D.delta), Math.round(100 - 9240 / 61));
+  eq(Math.round(D.neededPerDay), Math.round(9140 / 60));
+});
+
+test('after the goal date nothing is left to schedule', () => {
+  const D = derive(base, '2026-12-05');
+  eq(D.daysLeft, 0);
+  eq(D.neededPerDay, 9240);
+});
+
+test('goal reached clamps left at zero', () => {
+  eq(derive({ ...base, health: { '2026-10-01': 10000 } }, '2026-10-02').left, 0);
+});
+
+const failed = results.filter(r => r[1]);
+document.getElementById('out').innerHTML = results.map(([n, err]) =>
+  `<li class="${err ? 'fail' : 'pass'}">${err ? '✗' : '✓'} ${n}${err ? ` — ${err}` : ''}</li>`).join('');
+const summary = document.getElementById('summary');
+summary.textContent = failed.length ? `${failed.length} of ${results.length} FAILED` : `All ${results.length} passed`;
+summary.className = failed.length ? 'fail' : 'pass';
+</script>
+</body>
+</html>
