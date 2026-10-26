@@ -25,8 +25,12 @@ test('parses the Shortcut payload', () => {
   eq(parseHealthPayload('2026-10-01:412;2026-10-02:388'), { '2026-10-01': 412, '2026-10-02': 388 });
 });
 
-test('parses German decimals and thousands separators', () => {
-  eq(parseHealthPayload('2026-10-01:412,6;2026-10-02:1.234;2026-10-03:1,234'), { '2026-10-01': 413, '2026-10-02': 1234, '2026-10-03': 1234 });
+test('parses German decimals, including exactly 3 decimal places', () => {
+  eq(parseHealthPayload('2026-10-01:412,6;2026-10-02:11,234;2026-10-03:11.234 kcal'), { '2026-10-01': 413, '2026-10-02': 11, '2026-10-03': 11 });
+});
+
+test('parses repeated thousands separators', () => {
+  eq(parseHealthPayload('2026-10-01:1.234.567;2026-10-02:1,234,567'), { '2026-10-01': 1234567, '2026-10-02': 1234567 });
 });
 
 test('parses unrounded values with units and mixed separators', () => {

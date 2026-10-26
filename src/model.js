@@ -41,7 +41,8 @@ export function derive(state, today) {
 }
 
 // Accepts German and English number formats, with or without a unit ("412,6 kcal", "1.234,5", "1,234.5").
-// With both separators the last one is the decimal point; with one kind, exactly-3-digit groups are thousands.
+// With both separators the last one is the decimal point; a repeated separator ("1.234.567") is thousands.
+// A single separator is a decimal point: Health values are unrounded, so "11,234" is 11.234 kcal, not 11234.
 function parseKcal(raw) {
   const s = raw.replace(/[^\d.,-]/g, '');
   if (!/\d/.test(s)) return NaN;
@@ -50,7 +51,7 @@ function parseKcal(raw) {
     const dec = lastDot > lastComma ? '.' : ',';
     return Number(s.replace(dec === '.' ? /,/g : /\./g, '').replace(',', '.'));
   }
-  if (/^-?\d{1,3}([.,]\d{3})+$/.test(s)) return Number(s.replace(/[.,]/g, ''));
+  if (/^-?\d{1,3}([.,]\d{3}){2,}$/.test(s)) return Number(s.replace(/[.,]/g, ''));
   return Number(s.replace(',', '.'));
 }
 
