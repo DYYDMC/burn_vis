@@ -43,6 +43,11 @@ button.link { border: 0; background: none; padding: 0; color: var(--series-1); }
 .app { max-width: 600px; margin: 0 auto; padding: max(20px, env(safe-area-inset-top)) 16px 40px;
        display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .top { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+.top-actions { display: flex; gap: 14px; align-items: center; }
+/* The flag shows the language; an invisible native select on top of it opens the system picker */
+.lang { position: relative; font-size: 22px; line-height: 1; cursor: pointer; }
+.lang select { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; font-size: 16px; }
+.lang:focus-within { outline: 2px solid var(--series-1); outline-offset: 3px; border-radius: 4px; }
 
 /* Headline + fat block */
 .count { text-align: center; }

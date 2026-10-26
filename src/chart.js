@@ -1,9 +1,8 @@
 // Cumulative-burn line chart with red dashed goal date + goal kcal, planned pace and projection.
 
 import { addDays, diffDays } from './model.js';
+import { t, fmtDate } from './i18n.js';
 
-const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-export const fmtDate = iso => { const d = new Date(iso + 'T00:00:00Z'); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]}`; };
 const fmt = n => Math.round(n).toLocaleString('en-US');
 const compact = v => v >= 1000 ? (v / 1000).toFixed(v % 1000 ? 1 : 0) + 'K' : String(v);
 
@@ -36,15 +35,15 @@ export function renderChart(wrap, state, D, today) {
   const gx = x(state.goalDate), gy = y(state.goalKcal);
   const showToday = today >= state.startDate && today <= state.goalDate;
   wrap.innerHTML = `
-  <svg width="${W}" height="${H}" role="img" aria-label="Cumulative kcal burned versus goal">
+  <svg width="${W}" height="${H}" role="img" aria-label="${t('chartLabel')}">
     ${grid}${xt}
     <line x1="${x(state.startDate)}" y1="${y(D.pace)}" x2="${gx}" y2="${gy}" class="pace"/>
     ${last && today < state.goalDate ? `<line x1="${x(last.d)}" y1="${y(last.cum)}" x2="${gx}" y2="${y(D.projected)}" class="projection"/>` : ''}
     <line x1="${P.l}" x2="${W - P.r}" y1="${gy}" y2="${gy}" class="goal"/>
     <line x1="${gx}" x2="${gx}" y1="${P.t - 8}" y2="${P.t + h}" class="goal"/>
-    <text x="${gx - 6}" y="${gy - 8}" text-anchor="end" class="strong">Goal · ${fmt(state.goalKcal)} kcal · ${fmtDate(state.goalDate)}</text>
+    <text x="${gx - 6}" y="${gy - 8}" text-anchor="end" class="strong">${t('chartGoal', fmt(state.goalKcal), fmtDate(state.goalDate))}</text>
     ${showToday ? `<line x1="${x(today)}" x2="${x(today)}" y1="${P.t}" y2="${P.t + h}" class="today"/>
-      <text x="${x(today)}" y="${P.t - 10}" text-anchor="middle">Today</text>` : ''}
+      <text x="${x(today)}" y="${P.t - 10}" text-anchor="middle">${t('today')}</text>` : ''}
     <path d="${area}" class="area"/>
     <path d="${line}" class="burned"/>
     ${last ? `<circle cx="${x(last.d)}" cy="${y(last.cum)}" r="5" class="dot"/>
@@ -63,8 +62,8 @@ export function renderChart(wrap, state, D, today) {
     dot.setAttribute('visibility', p ? 'visible' : 'hidden');
     if (p) { dot.setAttribute('cx', px); dot.setAttribute('cy', y(p.cum)); }
     tip.innerHTML = `<b>${fmtDate(d)}</b><br>` +
-      (p ? `That day: <b>${fmt(p.day)}</b> kcal<br>Total: <b>${fmt(p.cum)}</b> kcal<br>` : `<span class="muted">Not yet</span><br>`) +
-      `<span class="muted">Plan: ${fmt(D.pace * (i + 1))} kcal</span>`;
+      (p ? `${t('tipDay', fmt(p.day))}<br>${t('tipTotal', fmt(p.cum))}<br>` : `<span class="muted">${t('tipNotYet')}</span><br>`) +
+      `<span class="muted">${t('tipPlan', fmt(D.pace * (i + 1)))}</span>`;
     tip.hidden = false;
     tip.style.left = Math.max(0, Math.min(px + 12, W - tip.offsetWidth - 4)) + 'px';
     tip.style.top = (P.t + 8) + 'px';

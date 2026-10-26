@@ -10,7 +10,10 @@
 <main class="app">
   <div class="top">
     <span id="range" class="muted"></span>
-    <button class="link" id="open-settings">Goal</button>
+    <div class="top-actions">
+      <label class="lang"><span id="lang-flag" aria-hidden="true"></span><select id="lang" data-i18n-aria-label="language"></select></label>
+      <button class="link" id="open-settings" data-i18n="goal">Goal</button>
+    </div>
   </div>
 
   <section class="count">
@@ -22,44 +25,45 @@
   <div id="fat" class="fat"></div>
 
   <div class="facts">
-    <div><b class="num" id="days-left"></b>days left</div>
-    <div><b class="num" id="per-day"></b>kcal / day</div>
-    <div><b class="num" id="today-kcal"></b>burned today</div>
+    <div><b class="num" id="days-left"></b><span data-i18n="daysLeft">days left</span></div>
+    <div><b class="num" id="per-day"></b><span data-i18n="perDay">kcal / day</span></div>
+    <div><b class="num" id="today-kcal"></b><span data-i18n="burnedToday">burned today</span></div>
   </div>
 
   <div class="chips" id="chips"></div>
   <form class="custom" id="custom-form">
-    <input type="number" name="kcal" placeholder="+ kcal burned" min="1" inputmode="numeric" required aria-label="Add kcal burned by hand">
-    <button class="primary">Melt it</button>
+    <input type="number" name="kcal" placeholder="+ kcal burned" min="1" inputmode="numeric" required aria-label="Add kcal burned by hand"
+           data-i18n-placeholder="addPlaceholder" data-i18n-aria-label="addLabel">
+    <button class="primary" data-i18n="meltIt">Melt it</button>
   </form>
   <p class="sync muted" id="sync-info"></p>
 
   <section class="card">
-    <h2>Progress</h2>
+    <h2 data-i18n="progress">Progress</h2>
     <div class="chart-wrap" id="chart"></div>
     <div class="legend">
-      <span><i class="key burned"></i>Burned (cumulative)</span>
-      <span><i class="key pace"></i>Planned pace</span>
-      <span><i class="key projection"></i>Projection at your average</span>
-      <span><i class="key goal"></i>Goal date &amp; kcal</span>
+      <span><i class="key burned"></i><span data-i18n="legendBurned">Burned (cumulative)</span></span>
+      <span><i class="key pace"></i><span data-i18n="legendPace">Planned pace</span></span>
+      <span><i class="key projection"></i><span data-i18n="legendProjection">Projection at your average</span></span>
+      <span><i class="key goal"></i><span data-i18n="legendGoal">Goal date &amp; kcal</span></span>
     </div>
   </section>
 
   <details class="card history">
-    <summary>History</summary>
+    <summary data-i18n="history">History</summary>
     <ul id="history"></ul>
   </details>
 </main>
 
 <dialog id="settings">
   <form method="dialog" id="settings-form">
-    <strong>Goal</strong>
-    <label>Start date <input type="date" name="startDate" required></label>
-    <label>Goal date <input type="date" name="goalDate" required></label>
-    <label>Goal kcal to burn <input type="number" name="goalKcal" min="1" step="1" required></label>
+    <strong data-i18n="goal">Goal</strong>
+    <label><span data-i18n="startDate">Start date</span> <input type="date" name="startDate" required></label>
+    <label><span data-i18n="goalDate">Goal date</span> <input type="date" name="goalDate" required></label>
+    <label><span data-i18n="goalKcal">Goal kcal to burn</span> <input type="number" name="goalKcal" min="1" step="1" required></label>
     <div class="actions">
-      <button value="cancel" formnovalidate>Cancel</button>
-      <button class="primary" value="save">Save</button>
+      <button value="cancel" formnovalidate data-i18n="cancel">Cancel</button>
+      <button class="primary" value="save" data-i18n="save">Save</button>
     </div>
   </form>
 </dialog>

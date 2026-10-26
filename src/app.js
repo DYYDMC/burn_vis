@@ -3,14 +3,15 @@
 import { derive, localToday, parseHealthPayload, mergeHealth, KCAL_PER_KG_FAT } from './model.js';
 import { load, save } from './store.js';
 import { createMelter } from './fat.js';
-import { renderChart, fmtDate } from './chart.js';
+import { renderChart } from './chart.js';
+import { LANGS, lang, setLang, t, has, fmtDate, translatePage } from './i18n.js';
 
 const QUICK = [
-  { label: '🚶 Walk 30 min', activity: 'Walk', kcal: 120 },
-  { label: '🏃 Run 30 min', activity: 'Run', kcal: 300 },
-  { label: '🚴 Ride 45 min', activity: 'Cycling', kcal: 350 },
-  { label: '🏋️ Gym 60 min', activity: 'Gym', kcal: 250 },
-  { label: '🏊 Swim 30 min', activity: 'Swim', kcal: 260 },
+  { emoji: '🚶', activity: 'Walk', min: 30, kcal: 120 },
+  { emoji: '🏃', activity: 'Run', min: 30, kcal: 300 },
+  { emoji: '🚴', activity: 'Cycling', min: 45, kcal: 350 },
+  { emoji: '🏋️', activity: 'Gym', min: 60, kcal: 250 },
+  { emoji: '🏊', activity: 'Swim', min: 30, kcal: 260 },
 ];
 
 const SANE_MANUAL_KCAL = 2000;
@@ -18,6 +19,8 @@ const SANE_MANUAL_KCAL = 2000;
 const $ = id => document.getElementById(id);
 const fmt = n => Math.round(n).toLocaleString('en-US');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+// Entries store the English activity name; show it translated
+const activityName = a => has(`act.${a}`) ? t(`act.${a}`) : a;
 
 let { state, isNew } = load(localToday());
 const melt = createMelter($('fat'), $('left-num'), () => state.goalKcal);
@@ -37,17 +40,17 @@ function importFromHash() {
   const days = parseHealthPayload(decodeURIComponent(m[1]));
   history.replaceState(null, '', location.pathname + location.search);
   const n = Object.keys(days).length;
-  if (!n) { toast('Apple Health link had no readable days'); return; }
+  if (!n) { toast(t('syncEmpty')); return; }
   state = mergeHealth(state, days, new Date().toISOString());
   if (isNew) state = { ...state, startDate: Object.keys(days).sort()[0] };   // first run: goal starts at the earliest synced day
   save(state);
-  toast(`Synced ${n} day${n === 1 ? '' : 's'} from Apple Health`);
+  toast(t('synced', n));
 }
 
 function addEntry(activity, kcal) {
   const entry = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, date: localToday(), activity, kcal };
   commit({ ...state, entries: [...state.entries, entry] });
-  toast(`−${fmt(kcal)} kcal 🔥`);
+  toast(t('added', fmt(kcal)));
 }
 
 function renderHistory(D, today) {
@@ -56,28 +59,28 @@ function renderHistory(D, today) {
     if (d > today) continue;
     const manual = state.entries.filter(e => e.date === d);
     const health = state.health[d];
-    days.push(`<li><div class="day"><b>${fmtDate(d)}</b><span class="num">${fmt(D.byDay[d])} kcal</span></div>
-      ${health != null ? `<div class="row muted"><span>Apple Health · Active Energy</span><span class="num">${fmt(health)}</span></div>` : ''}
-      ${manual.map(e => `<div class="row"><span>${esc(e.activity)} <span class="muted">· added by hand</span></span>
-        <span class="num">${fmt(e.kcal)} <button class="link" data-del="${e.id}" aria-label="Delete ${esc(e.activity)} entry">✕</button></span></div>`).join('')}</li>`);
+    days.push(`<li><div class="day"><b>${fmtDate(d)}</b><span class="num">${t('kcal', fmt(D.byDay[d]))}</span></div>
+      ${health != null ? `<div class="row muted"><span>${t('healthRow')}</span><span class="num">${fmt(health)}</span></div>` : ''}
+      ${manual.map(e => `<div class="row"><span>${esc(activityName(e.activity))} <span class="muted">· ${t('byHand')}</span></span>
+        <span class="num">${fmt(e.kcal)} <button class="link" data-del="${e.id}" aria-label="${esc(t('deleteEntry', activityName(e.activity)))}">✕</button></span></div>`).join('')}</li>`);
   }
-  $('history').innerHTML = days.join('') || '<li class="muted">Nothing logged yet</li>';
+  $('history').innerHTML = days.join('') || `<li class="muted">${t('nothingLogged')}</li>`;
 }
 
 function render() {
   const today = localToday(), D = derive(state, today);
   $('range').textContent = `${fmtDate(state.startDate)} → ${fmtDate(state.goalDate)}`;
   melt(D.left);
-  $('left-sub').textContent = `kcal of fat left to melt · ≈ ${(D.left / KCAL_PER_KG_FAT).toFixed(2)} kg`;
+  $('left-sub').textContent = t('leftSub', (D.left / KCAL_PER_KG_FAT).toFixed(2));
   const ahead = D.delta >= 0;
   $('status').className = `status ${ahead ? 'good' : 'warn'}`;
-  $('status').innerHTML = `<span aria-hidden="true">${ahead ? '▲' : '▼'}</span> <span>${fmt(Math.abs(D.delta))} kcal ${ahead ? 'ahead of' : 'behind'} pace</span>`;
+  $('status').innerHTML = `<span aria-hidden="true">${ahead ? '▲' : '▼'}</span> <span>${t(ahead ? 'ahead' : 'behind', fmt(Math.abs(D.delta)))}</span>`;
   $('days-left').textContent = D.daysLeft;
   $('per-day').textContent = fmt(D.neededPerDay);
   $('today-kcal').textContent = fmt(D.todayBurned);
   $('sync-info').innerHTML = state.healthSyncedAt
-    ? `Apple Health last synced ${new Date(state.healthSyncedAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · <a href="sync-setup.html">Sync setup</a>`
-    : 'Apple Health not synced yet · <a href="sync-setup.html">Set up sync</a>';
+    ? `${t('lastSynced', new Date(state.healthSyncedAt).toLocaleString(lang().locale, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))} · <a href="sync-setup.html">${t('syncSetup')}</a>`
+    : `${t('notSynced')} · <a href="sync-setup.html">${t('setUpSync')}</a>`;
   renderChart($('chart'), state, D, today);
   renderHistory(D, today);
 }
@@ -92,19 +95,28 @@ function openSettings() {
 $('settings').addEventListener('close', () => {
   if ($('settings').returnValue !== 'save') return;
   const f = $('settings-form');
-  if (f.goalDate.value <= f.startDate.value) { toast('Goal date must be after the start date'); return; }
+  if (f.goalDate.value <= f.startDate.value) { toast(t('goalAfterStart')); return; }
   commit({ ...state, startDate: f.startDate.value, goalDate: f.goalDate.value, goalKcal: Number(f.goalKcal.value) });
 });
 $('open-settings').onclick = openSettings;
 
-$('chips').innerHTML = QUICK.map((q, i) => `<button type="button" data-quick="${i}">${q.label} · ${q.kcal}</button>`).join('');
+// Text that only changes with the language: static HTML, quick-add chips, the flag picker
+function renderLanguage() {
+  translatePage();
+  $('chips').innerHTML = QUICK.map((q, i) => `<button type="button" data-quick="${i}">${q.emoji} ${t(`chip.${q.activity}`)} ${t('minutes', q.min)} · ${q.kcal}</button>`).join('');
+  $('lang-flag').textContent = lang().flag;
+  $('lang').value = lang().code;
+}
+
+$('lang').innerHTML = LANGS.map(l => `<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');
+$('lang').onchange = ev => { setLang(ev.target.value); renderLanguage(); render(); };
 $('chips').onclick = ev => { const b = ev.target.closest('[data-quick]'); if (b) { const q = QUICK[b.dataset.quick]; addEntry(q.activity, q.kcal); } };
 $('custom-form').onsubmit = ev => {
   ev.preventDefault();
   const kcal = Number(ev.target.kcal.value);
   if (!(kcal > 0)) return;
   // A goal-sized number typed here would melt the block in one go
-  if (kcal > SANE_MANUAL_KCAL && !confirm(`Add ${fmt(kcal)} kcal burned today by hand? That's more than a marathon.`)) return;
+  if (kcal > SANE_MANUAL_KCAL && !confirm(t('confirmBig', fmt(kcal)))) return;
   addEntry('Other', kcal); ev.target.reset();
 };
 $('history').onclick = ev => {
@@ -117,6 +129,7 @@ addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setT
 addEventListener('hashchange', () => { importFromHash(); render(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });   // day may have rolled over
 
+renderLanguage();
 importFromHash();
 render();
 if (isNew) openSettings();

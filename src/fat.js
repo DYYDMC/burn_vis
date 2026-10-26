@@ -1,5 +1,7 @@
 // The melting fat block: an SVG whose block height is the share of the goal still left to burn.
 
+import { t } from './i18n.js';
+
 const fmt = n => Math.round(n).toLocaleString('en-US');
 
 export function fatSVG(left, goalKcal) {
@@ -31,7 +33,7 @@ export function fatSVG(left, goalKcal) {
     `<circle class="drop" style="--fall:24px; animation-delay:${i * 1.1}s" cx="${dx + (i ? 6 : -6)}" cy="${G - 26}" r="4" fill="var(--fat-shade)"/>`).join('') : '';
 
   return `
-  <svg viewBox="0 0 360 350" role="img" aria-label="${fmt(left)} kcal of fat left">
+  <svg viewBox="0 0 360 350" role="img" aria-label="${t('fatLabel', fmt(left))}">
     <defs><clipPath id="fatclip"><path d="${body}"/></clipPath></defs>
     <rect x="${x0}" y="${G - maxH}" width="${W}" height="${maxH}" rx="26" fill="none" stroke="var(--fat-edge)" stroke-width="1.5" stroke-dasharray="4 6" opacity=".6"/>
     <text x="${x1 + 8}" y="${G - maxH + 12}" class="fat-goal">${fmt(goalKcal)}</text>
@@ -42,7 +44,7 @@ export function fatSVG(left, goalKcal) {
       <path d="M${x0 - 10},${G - 60} q50,-30 100,-6 t130,-20"/>
       <path d="M${x0 - 10},${G - 150} q60,20 110,-10 t120,8"/>
       <rect x="${x1 - 26}" y="${top}" width="26" height="${h}" fill="var(--fat-shade)" stroke="none" opacity=".55"/>
-    </g>${drips}${falling}${face}` : `<text x="180" y="${G - 40}" text-anchor="middle" class="fat-done">All melted! 🎉</text>`}
+    </g>${drips}${falling}${face}` : `<text x="180" y="${G - 40}" text-anchor="middle" class="fat-done">${t('allMelted')}</text>`}
   </svg>`;
 }
 

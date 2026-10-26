@@ -9,6 +9,7 @@
 <ul id="out"></ul>
 <script type="module">
 import { derive, parseHealthPayload, mergeHealth, defaultState, addDays, diffDays } from './src/model.js';
+import { LANGS } from './src/i18n.js';
 
 const results = [];
 const test = (name, fn) => { try { fn(); results.push([name, null]); } catch (e) { results.push([name, e.message]); } };
@@ -71,6 +72,14 @@ test('after the goal date nothing is left to schedule', () => {
 
 test('goal reached clamps left at zero', () => {
   eq(derive({ ...base, health: { '2026-10-01': 10000 } }, '2026-10-02').left, 0);
+});
+
+const en = LANGS.find(l => l.code === 'en');
+for (const l of LANGS) test(`language ${l.code} has the same keys as English`, () => {
+  for (const f of ['code', 'flag', 'name', 'locale']) if (!l[f]) throw new Error(`missing ${f}`);
+  eq(Object.keys(l.strings).filter(k => !(k in en.strings)), []);
+  eq(Object.keys(en.strings).filter(k => !(k in l.strings)), []);
+  eq(Object.keys(en.strings).filter(k => typeof l.strings[k] !== typeof en.strings[k]), []);
 });
 
 const failed = results.filter(r => r[1]);

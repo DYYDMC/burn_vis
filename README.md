@@ -31,6 +31,15 @@ Each sync replaces the Health total for the days it sends, so running it several
 Setup steps for beginners, with a copy button for the link: open `sync-setup.html` on the site
 (<https://dyydmc.github.io/burn_vis/sync-setup.html>), also linked from the app under the buttons.
 
+## Languages
+
+English and Mandarin (Simplified Chinese). Tap the flag in the top bar to switch; the choice is remembered in the browser.
+On first visit the app follows the phone's language, falling back to English.
+
+To add a language, copy `src/locales/en.js` to `src/locales/<code>.js`, translate the strings, and add it to `LANGS` in
+`src/i18n.js`. `tests.html` checks that every language has the same keys as English.
+The Shortcut setup guide (`sync-setup.html`) is English only.
+
 ## Decisions
 
 - **Design:** the melting fat block, with the trend chart underneath. Chosen from a three-variant
